@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>極限反應大挑戰</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <main class="game-container" id="main-container">
+        <!-- 主選單畫面 -->
+        <section id="screen-start" class="screen active">
+            <h1 class="title">REACTION<br><span class="highlight">HUB</span></h1>
+            <p class="subtitle">極限反應雙重挑戰</p>
+            
+            <div class="stats-panel">
+                <div class="stat-box">
+                    <span class="stat-label">🔢 最高分</span>
+                    <span id="best-score-num" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">🟩 最高分</span>
+                    <span id="best-score-block" class="stat-value">0</span>
+                </div>
+            </div>
+            
+            <div class="mode-selection">
+                <button class="mode-btn mode-num" data-mode="numbers">
+                    <h3>🔢 數字反應</h3>
+                    <p>30秒內從四個選項找對目標</p>
+                </button>
+                <button class="mode-btn mode-block" data-mode="blocks">
+                    <h3>🟩 滅燈方塊</h3>
+                    <p>30秒內點擊亮起紅燈的方塊</p>
+                </button>
+            </div>
+        </section>
+
+        <!-- 倒數準備畫面 -->
+        <section id="screen-ready" class="screen">
+            <h2 class="ready-text">GET READY</h2>
+            <div id="countdown-display" class="huge-number">3</div>
+        </section>
+
+        <!-- 遊戲進行畫面 -->
+        <section id="screen-play" class="screen">
+            <div class="hud">
+                <div class="time-left">
+                    <span class="hud-label">TIME</span>
+                    <span id="time-display" class="hud-value">30.0</span>
+                </div>
+                <div class="score-display">
+                    <span class="hud-label">SCORE</span>
+                    <span id="score-display" class="hud-value score-text">0</span>
+                </div>
+            </div>
+            
+            <!-- Game Mode 1: Numbers -->
+            <div id="game-numbers-area" class="game-area hidden">
+                <div class="target-area">
+                    <div class="target-number-box">
+                        <span id="target-number" class="huge-number target-num">50</span>
+                    </div>
+                </div>
+                <div class="options-grid">
+                    <button class="option-btn" data-index="0">0</button>
+                    <button class="option-btn" data-index="1">0</button>
+                    <button class="option-btn" data-index="2">0</button>
+                    <button class="option-btn" data-index="3">0</button>
+                </div>
+            </div>
+
+            <!-- Game Mode 2: Blocks -->
+            <div id="game-blocks-area" class="game-area hidden">
+                <div class="blocks-grid">
+                    <div class="block-btn" data-bindex="0"></div>
+                    <div class="block-btn" data-bindex="1"></div>
+                    <div class="block-btn" data-bindex="2"></div>
+                    <div class="block-btn" data-bindex="3"></div>
+                    <div class="block-btn" data-bindex="4"></div>
+                    <div class="block-btn" data-bindex="5"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 結算畫面 -->
+        <section id="screen-result" class="screen">
+            <h2 class="result-title">TIME'S UP!</h2>
+            
+            <div class="result-stats">
+                <div class="result-box primary">
+                    <span class="result-label" id="result-mode-label">本次得分</span>
+                    <span id="result-score" class="result-value">0</span>
+                </div>
+            </div>
+            
+            <p id="evaluation-msg" class="evaluation-text"></p>
+            <p id="new-record-msg" class="new-record hidden">🎉 新最高紀錄！ 🎉</p>
+            
+            <div class="result-actions">
+                <button id="btn-restart" class="primary-btn">再戰一回</button>
+                <button id="btn-home" class="secondary-btn">回選單</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
