@@ -22,6 +22,8 @@ let currentDuration = 30;
 let blocksArray = [];
 let blinkTimeout = null;
 let colorRuleHistory = [];
+let bwTimeout = null;
+let currentBwType = ''; // 'black' or 'white'
 
 // DOM
 const screens = {
@@ -36,6 +38,7 @@ const displayElements = {
     bestScoreBlock: document.getElementById('best-score-block'),
     bestScoreSchulte: document.getElementById('best-score-schulte'),
     bestScoreColor: document.getElementById('best-score-color'),
+    bestScoreBw: document.getElementById('best-score-bw'),
     countdown: document.getElementById('countdown-display'),
     time: document.getElementById('time-display'),
     score: document.getElementById('score-display'),
@@ -53,7 +56,8 @@ const areas = {
     numbers: document.getElementById('game-numbers-area'),
     blocks: document.getElementById('game-blocks-area'),
     schulte: document.getElementById('game-schulte-area'),
-    color: document.getElementById('game-color-area')
+    color: document.getElementById('game-color-area'),
+    bw: document.getElementById('game-bw-area')
 };
 
 const mainContainer = document.getElementById('main-container');
@@ -148,10 +152,12 @@ function loadBestScores() {
     bestScoreBlock = parseInt(localStorage.getItem('bestScoreBlock') || '0', 10);
     bestScoreSchulte = parseInt(localStorage.getItem('bestScoreSchulte') || '0', 10);
     bestScoreColor = parseInt(localStorage.getItem('bestScoreColor') || '0', 10);
+    bestScoreBw = parseInt(localStorage.getItem('bestScoreBw') || '0', 10);
     displayElements.bestScoreNum.textContent = bestScoreNum;
     displayElements.bestScoreBlock.textContent = bestScoreBlock;
     displayElements.bestScoreSchulte.textContent = bestScoreSchulte;
     displayElements.bestScoreColor.textContent = bestScoreColor;
+    displayElements.bestScoreBw.textContent = bestScoreBw;
 }
 
 function saveBestScore(mode, s) {
@@ -171,6 +177,10 @@ function saveBestScore(mode, s) {
         localStorage.setItem('bestScoreColor', s);
         bestScoreColor = s;
         displayElements.bestScoreColor.textContent = s;
+    } else if (mode === 'bw') {
+        localStorage.setItem('bestScoreBw', s);
+        bestScoreBw = s;
+        displayElements.bestScoreBw.textContent = s;
     }
 }
 
@@ -198,6 +208,11 @@ function bindEvents() {
         btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleColorClick(btn); }, {passive: false});
         btn.addEventListener('mousedown', (e) => { if (e.button === 0) handleColorClick(btn); });
     });
+    
+    // BW Defense 綁定
+    const bwBtn = document.getElementById('bw-btn');
+    bwBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleBwClick(); }, {passive: false});
+    bwBtn.addEventListener('mousedown', (e) => { if (e.button === 0) handleBwClick(); });
 }
 
 function switchScreen(screenName) {
@@ -211,11 +226,25 @@ function startReadyPhase() {
     switchScreen('ready');
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     
+    const instructions = {
+        numbers: "🎯 目標：在 30 秒內<br>從四個選項中找出上方指定的數字",
+        blocks: "🎯 目標：在 30 秒內<br>盡可能點擊亮起的紅色方塊",
+        schulte: "🎯 目標：在 30 秒內<br>睜大眼睛，按照 1～25 的順序依序點開",
+        color: "⚠️ 陷阱警告：小心大腦當機！<br>必須嚴格遵守畫面頂端臨時決定的指示",
+        bw: "⚠️ 防禦系統啟動：<br>看見「黑」牌【立刻點擊】<br>看見「白」牌【忍住不點】"
+    };
+    
+    const instructionEl = document.getElementById('ready-instruction');
+    if (instructionEl) {
+        instructionEl.innerHTML = instructions[gameMode] || "";
+    }
+    
     // 切換顯示的遊戲區域
     areas.numbers.classList.add('hidden');
     areas.blocks.classList.add('hidden');
     areas.schulte.classList.add('hidden');
     areas.color.classList.add('hidden');
+    areas.bw.classList.add('hidden');
     if (areas[gameMode]) {
         areas[gameMode].classList.remove('hidden');
     }
@@ -253,6 +282,7 @@ function startGame() {
     colorRuleHistory = [];
     
     if (blinkTimeout) clearTimeout(blinkTimeout);
+    if (bwTimeout) clearTimeout(bwTimeout);
     
     displayElements.time.textContent = timeRemaining.toFixed(1);
     displayElements.time.classList.remove('warning');
@@ -262,6 +292,7 @@ function startGame() {
     if (gameMode === 'blocks') startBlocksLevel(1);
     if (gameMode === 'schulte') startSchulteLevel();
     if (gameMode === 'color') generateColorQuestion();
+    if (gameMode === 'bw') generateBwCard();
     
     const notice = document.getElementById('level-notice');
     if (notice) notice.classList.add('hidden');
@@ -539,6 +570,72 @@ function handleColorClick(btn) {
     }
 }
 
+// ==== MODE 5: BLack White Defense ====
+function generateBwCard() {
+    if (bwTimeout) clearTimeout(bwTimeout);
+    
+    // 動態調整給予玩家反應的時間 (人類對於「選擇與辨識」的反應極限約為 400~500ms)
+    // 我們將後期的極限放寬一些，避免玩家真的按下去了卻被系統判定「太慢超時」而扣分
+    let speed = 1000;
+    if (score >= 50) speed = 500;
+    else if (score >= 35) speed = 600;
+    else if (score >= 20) speed = 750;
+    else speed = 900;
+    
+    // 60% 黑 (必須點), 40% 白 (必須忍住)
+    let isBlack = Math.random() < 0.6;
+    currentBwType = isBlack ? 'black' : 'white';
+    
+    const btn = document.getElementById('bw-btn');
+    btn.textContent = isBlack ? '黑' : '白';
+    
+    if (isBlack) {
+        btn.classList.remove('card-white');
+        btn.classList.add('card-black');
+    } else {
+        btn.classList.remove('card-black');
+        btn.classList.add('card-white');
+    }
+    
+    // Reset animation
+    btn.style.animation = 'none';
+    void btn.offsetWidth;
+    btn.style.animation = 'target-pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+    
+    bwTimeout = setTimeout(() => {
+        if (!gameActive) return;
+        if (currentBwType === 'black') {
+            // 沒點到黑色，扣秒
+            triggerError();
+            generateBwCard();
+        } else {
+            // 成功忍住沒點白色，得分！
+            score++;
+            displayElements.score.textContent = score;
+            playSuccessSound();
+            generateBwCard();
+        }
+    }, speed);
+}
+
+function handleBwClick() {
+    if (!gameActive || gameMode !== 'bw') return;
+    
+    if (currentBwType === 'black') {
+        // 點對黑色
+        score++;
+        displayElements.score.textContent = score;
+        playSuccessSound();
+        mainContainer.classList.add('success-flash');
+        setTimeout(() => mainContainer.classList.remove('success-flash'), 100);
+        generateBwCard();
+    } else {
+        // 誤點白色
+        triggerError();
+        generateBwCard();
+    }
+}
+
 function triggerError() {
     if (!gameActive) return;
     
@@ -560,13 +657,15 @@ function endGame() {
     gameActive = false;
     clearInterval(timerInterval);
     if (blinkTimeout) clearTimeout(blinkTimeout);
+    if (bwTimeout) clearTimeout(bwTimeout);
     playGameOverSound();
     
     displayElements.resultScore.textContent = score;
     displayElements.resultModeLabel.textContent = 
         (gameMode === 'numbers') ? '數字模式得分' : 
         (gameMode === 'blocks') ? '滅燈方塊得分' : 
-        (gameMode === 'schulte') ? '舒爾特得分' : '色彩陷阱得分';
+        (gameMode === 'schulte') ? '舒爾特得分' : 
+        (gameMode === 'color') ? '色彩陷阱得分' : '黑白防禦得分';
     
     // 根據分數給予評語
     let evalText = "";
@@ -582,12 +681,18 @@ function endGame() {
         else if (score >= 80) evalText = "高手境界！眼睛跟得上每一次閃爍！（抵達第三關） 🚀";
         else if (score >= 30) evalText = "不錯喔！熱身完畢，準備迎接真正的挑戰！（抵達第二關） 👏";
         else evalText = "剛睡醒嗎？多練幾次手感就會來了！ 😴";
-    } else {
+    } else if (gameMode === 'schulte') {
         if (score >= 60) evalText = "主宰宇宙的專注力！你一定是天才！ 🪐";
         else if (score >= 40) evalText = "神級視野！你的周邊視覺超乎常人！ 🦅";
         else if (score >= 25) evalText = "超越常人！順利突破第一輪！ 👀";
         else if (score >= 15) evalText = "表現優良！多練習能掌握整體節奏！ 📘";
         else evalText = "眼睛花了嗎？放鬆一下再來挑戰！ 😵‍💫";
+    } else if (gameMode === 'bw') {
+        if (score >= 60) evalText = "絕對防禦！你的煞車神經無懈可擊！ 🛡️";
+        else if (score >= 45) evalText = "超強定力！黑白分明毫不猶豫！ 👁️";
+        else if (score >= 30) evalText = "反應出眾！成功抵抗大腦的衝動！ 🧠";
+        else if (score >= 15) evalText = "不錯喔！再冷靜一點分數會更高！ ❄️";
+        else evalText = "是不是看到什麼就想點？太衝動啦！ 💥";
     }
     
     displayElements.evaluationMsg.textContent = evalText;
@@ -605,6 +710,9 @@ function endGame() {
     } else if (gameMode === 'color' && score > bestScoreColor) {
         isNewRecord = true;
         saveBestScore('color', score);
+    } else if (gameMode === 'bw' && score > bestScoreBw) {
+        isNewRecord = true;
+        saveBestScore('bw', score);
     }
     
     if (isNewRecord) {

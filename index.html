@@ -33,8 +33,12 @@
                     <span id="best-score-schulte" class="stat-value">0</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-label">🎨 色彩陷阱</span>
+                    <span class="stat-label">🎨 色彩</span>
                     <span id="best-score-color" class="stat-value">0</span>
+                </div>
+                <div class="stat-box" id="stat-bw">
+                    <span class="stat-label">☯️ 黑白</span>
+                    <span id="best-score-bw" class="stat-value">0</span>
                 </div>
             </div>
             
@@ -55,12 +59,17 @@
                     <h3>🎨 色彩陷阱</h3>
                     <p>選擇字體顏色，小心大腦當機</p>
                 </button>
+                <button class="mode-btn mode-bw" data-mode="bw">
+                    <h3>☯️ 黑白防禦戰</h3>
+                    <p>看到黑色點擊，看到白色忍住</p>
+                </button>
             </div>
         </section>
 
         <!-- 倒數準備畫面 -->
         <section id="screen-ready" class="screen">
             <h2 class="ready-text">GET READY</h2>
+            <p id="ready-instruction" class="ready-instruction"></p>
             <div id="countdown-display" class="huge-number">3</div>
         </section>
 
@@ -122,6 +131,10 @@
                     <button class="color-btn" data-color="green"></button>
                     <button class="color-btn" data-color="yellow"></button>
                 </div>
+            </div>
+            <!-- Game Mode 5: Black White Defense -->
+            <div id="game-bw-area" class="game-area hidden bw-area">
+                <button id="bw-btn" class="bw-btn card-black">黑</button>
             </div>
         </section>
 

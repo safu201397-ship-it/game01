@@ -136,35 +136,37 @@ body {
     letter-spacing: 2px;
 }
 
-/* 主選單雙最高分顯示 */
+/* 主選單最高分看板 (簡約為單行 5 欄) */
 .stats-panel {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.4rem;
     width: 100%;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
 }
 
 .stat-box {
-    flex: 1;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 0.8rem;
+    border-radius: 10px;
+    padding: 0.5rem 0.2rem;
     text-align: center;
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
 
 .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     color: var(--secondary-color);
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .stat-value {
-    font-size: 1.8rem;
+    font-size: 1.3rem;
     font-weight: 700;
 }
 
@@ -180,7 +182,7 @@ body {
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid var(--glass-border);
     border-radius: 16px;
-    padding: 1.2rem 0.8rem;
+    padding: 1rem 0.5rem;
     color: white;
     cursor: pointer;
     text-align: center;
@@ -190,7 +192,7 @@ body {
     justify-content: center;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1);
     -webkit-tap-highlight-color: transparent;
-    min-height: 110px;
+    height: 100px;
 }
 
 .mode-btn h3 {
@@ -298,6 +300,18 @@ body {
     letter-spacing: 5px;
     margin-bottom: 1rem;
     animation: flash 1s infinite alternate;
+}
+
+.ready-instruction {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-main);
+    text-align: center;
+    margin-bottom: 2rem;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+    padding: 0 1rem;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
 }
 
 @keyframes flash {
@@ -631,6 +645,55 @@ body {
 .color-btn[data-color="green"] { background: #00cc66; }
 .color-btn[data-color="yellow"] { background: #ffcc00; }
 
+/* ======== 第五模式：黑白防禦 ======== */
+.mode-btn.mode-bw {
+    grid-column: 1 / -1;
+}
+
+.mode-btn.mode-bw:hover {
+    border-color: #ffffff;
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.4);
+}
+
+.bw-area {
+    justify-content: center;
+    align-items: center;
+}
+
+.bw-btn {
+    width: 250px;
+    height: 350px;
+    border-radius: 30px;
+    border: 4px solid var(--glass-border);
+    font-size: 8rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bw-btn:active {
+    transform: scale(0.95);
+}
+
+.bw-btn.card-black {
+    background: #111111;
+    color: #ffffff;
+    border-color: #444444;
+}
+
+.bw-btn.card-white {
+    background: #eeeeee;
+    color: #111111;
+    border-color: #ffffff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
 /* 結算畫面 */
 .result-title {
     font-size: 3rem;
@@ -719,14 +782,16 @@ body {
 @media (max-height: 750px), (max-width: 450px) {
     .game-container {
         height: 95vh;
-        padding: 1.5rem;
+        padding: 1.2rem;
     }
     .huge-number { font-size: 6rem; }
+    .ready-instruction { font-size: 1rem; margin-bottom: 1.5rem; }
     .option-btn { height: 80px; font-size: 2.5rem; }
     .options-grid { gap: 1rem; }
     .blocks-grid { gap: 1rem; }
-    .title { font-size: 2.5rem; }
-    .mode-btn { padding: 0.8rem; min-height: 90px; }
-    .mode-btn h3 { font-size: 1.1rem; }
-    .mode-btn p { font-size: 0.7rem; }
+    .title { font-size: 2.2rem; margin-bottom: 0.2rem; }
+    .subtitle { font-size: 1rem; margin-bottom: 0.8rem; }
+    .mode-btn { padding: 0.5rem; height: 85px; }
+    .mode-btn h3 { font-size: 0.95rem; margin-bottom: 0.3rem;}
+    .mode-btn p { font-size: 0.65rem; }
 }
