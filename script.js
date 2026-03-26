@@ -381,6 +381,16 @@ function handleBlockClick(idx) {
 }
 
 function triggerError() {
+    if (!gameActive) return;
+    
+    currentDuration -= 1; // 按錯扣 1 秒
+    
+    const elapsed = (performance.now() - startTime) / 1000;
+    timeRemaining = Math.max(0, currentDuration - elapsed);
+    displayElements.time.textContent = timeRemaining.toFixed(1);
+    
+    displayElements.time.classList.add('warning');
+    
     playErrorSound();
     mainContainer.classList.add('error-shake');
     setTimeout(() => mainContainer.classList.remove('error-shake'), 400);
