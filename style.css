@@ -425,12 +425,34 @@ body {
 /* ======== 第二模式：滅燈方塊 ======== */
 .blocks-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* Columns set dynamically in JS */
     grid-template-rows: 1fr 1fr 1fr;
     gap: 1.5rem;
     width: 100%;
     flex: 1;
     padding-bottom: 1rem;
+    position: relative;
+}
+
+.level-notice {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--secondary-color);
+    text-shadow: 0 0 20px rgba(0, 240, 255, 0.8);
+    z-index: 10;
+    pointer-events: none;
+    animation: level-up-pop 1.5s forwards;
+}
+
+@keyframes level-up-pop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
 }
 
 .block-btn {

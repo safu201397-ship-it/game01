@@ -12,6 +12,12 @@ let gameActive = false;
 let currentTarget = 0; // for numbers mode
 let currentBlock = -1; // for blocks mode
 
+let currentLevel = 1;
+let startTime = 0;
+let currentDuration = 30;
+let blocksArray = [];
+let blinkTimeout = null;
+
 // DOM
 const screens = {
     start: document.getElementById('screen-start'),
@@ -44,8 +50,7 @@ const buttons = {
     modeSelections: document.querySelectorAll('.mode-btn'),
     restart: document.getElementById('btn-restart'),
     home: document.getElementById('btn-home'),
-    options: document.querySelectorAll('.option-btn'),
-    blocks: document.querySelectorAll('.block-btn')
+    options: document.querySelectorAll('.option-btn')
 };
 
 // 音效引擎
@@ -163,11 +168,6 @@ function bindEvents() {
         btn.addEventListener('mousedown', (e) => { if (e.button === 0) handleNumberClick(btn); });
     });
     
-    // Blocks Mode 按鈕綁定
-    buttons.blocks.forEach((btn, idx) => {
-        btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleBlockClick(idx); }, {passive: false});
-        btn.addEventListener('mousedown', (e) => { if (e.button === 0) handleBlockClick(idx); });
-    });
 }
 
 function switchScreen(screenName) {
@@ -215,29 +215,93 @@ function startReadyPhase() {
 function startGame() {
     score = 0;
     gameActive = true;
-    timeRemaining = (gameMode === 'numbers') ? DURATION_NUMBERS : DURATION_BLOCKS;
+    currentLevel = 1;
+    currentDuration = (gameMode === 'numbers') ? DURATION_NUMBERS : DURATION_BLOCKS;
+    timeRemaining = currentDuration;
+    
+    if (blinkTimeout) clearTimeout(blinkTimeout);
     
     displayElements.time.textContent = timeRemaining.toFixed(1);
     displayElements.time.classList.remove('warning');
     displayElements.score.textContent = score;
     
     if (gameMode === 'numbers') generateNumberQuestion();
-    if (gameMode === 'blocks') generateNextBlock();
+    if (gameMode === 'blocks') startBlocksLevel(1);
+    
+    const notice = document.getElementById('level-notice');
+    if (notice) notice.classList.add('hidden');
     
     switchScreen('play');
     
-    const startTime = performance.now();
+    startTime = performance.now();
     timerInterval = setInterval(() => {
         const elapsed = (performance.now() - startTime) / 1000;
-        const dur = (gameMode === 'numbers') ? DURATION_NUMBERS : DURATION_BLOCKS;
-        timeRemaining = Math.max(0, dur - elapsed);
+        timeRemaining = Math.max(0, currentDuration - elapsed);
         
         displayElements.time.textContent = timeRemaining.toFixed(1);
         if (timeRemaining <= 5 && !displayElements.time.classList.contains('warning')) {
             displayElements.time.classList.add('warning');
         }
-        if (timeRemaining <= 0) endGame();
+        if (timeRemaining <= 0) {
+            if (gameMode === 'blocks') {
+                if (currentLevel === 1 && score >= 30) advanceToLevel(2);
+                else if (currentLevel === 2 && score >= 80) advanceToLevel(3);
+                else if (currentLevel === 3 && score >= 140) advanceToLevel(4);
+                else endGame();
+            } else {
+                endGame();
+            }
+        }
     }, 50);
+}
+
+function advanceToLevel(level) {
+    currentLevel = level;
+    currentDuration = 30;
+    timeRemaining = currentDuration;
+    startTime = performance.now();
+    
+    displayElements.time.classList.remove('warning');
+    
+    const notice = document.getElementById('level-notice');
+    if (notice) {
+        notice.classList.remove('hidden');
+        notice.textContent = 'LEVEL ' + level;
+        notice.style.animation = 'none';
+        void notice.offsetWidth;
+        notice.style.animation = 'level-up-pop 1.5s forwards';
+    }
+    
+    mainContainer.classList.add('success-flash');
+    setTimeout(() => mainContainer.classList.remove('success-flash'), 500);
+    playSuccessSound();
+    
+    if (blinkTimeout) clearTimeout(blinkTimeout);
+    
+    startBlocksLevel(level);
+}
+
+function startBlocksLevel(level) {
+    let numBlocks = level === 1 ? 6 : 9;
+    let cols = level === 1 ? 2 : 3;
+    
+    const blocksGrid = document.getElementById('blocks-grid');
+    blocksGrid.innerHTML = '';
+    blocksGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    
+    blocksArray = [];
+    currentBlock = -1;
+    for(let i=0; i<numBlocks; i++) {
+        let btn = document.createElement('div');
+        btn.classList.add('block-btn');
+        btn.dataset.bindex = i;
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleBlockClick(i); }, {passive: false});
+        btn.addEventListener('mousedown', (e) => { if (e.button === 0) handleBlockClick(i); });
+        blocksGrid.appendChild(btn);
+        blocksArray.push(btn);
+    }
+    
+    generateNextBlock();
 }
 
 // ==== MODE 1: NUMBERS ====
@@ -277,22 +341,35 @@ function handleNumberClick(btn) {
 // ==== MODE 2: BLOCKS ====
 function generateNextBlock() {
     // 移除現有的紅燈
-    buttons.blocks.forEach(b => b.classList.remove('active-target'));
+    blocksArray.forEach(b => b.classList.remove('active-target'));
+    if (blinkTimeout) clearTimeout(blinkTimeout);
     
     let nextBlock;
+    let numBlocks = blocksArray.length;
     do {
-        nextBlock = Math.floor(Math.random() * 6);
+        nextBlock = Math.floor(Math.random() * numBlocks);
     } while (nextBlock === currentBlock); // 確保不與上個位置重複
     
     currentBlock = nextBlock;
-    buttons.blocks[currentBlock].classList.add('active-target');
+    blocksArray[currentBlock].classList.add('active-target');
+
+    // 閃爍機制
+    if (currentLevel === 3) {
+        blinkTimeout = setTimeout(() => {
+            if (gameActive) generateNextBlock();
+        }, 1000);
+    } else if (currentLevel >= 4) {
+        blinkTimeout = setTimeout(() => {
+            if (gameActive) generateNextBlock();
+        }, 500);
+    }
 }
 
 function handleBlockClick(idx) {
     if (!gameActive || gameMode !== 'blocks') return;
     
     if (idx === currentBlock) {
-        score++;
+        score += currentLevel; // L1: 1, L2: 2, L3: 3, L4: 4
         displayElements.score.textContent = score;
         playSuccessSound();
         mainContainer.classList.add('success-flash');
@@ -313,6 +390,7 @@ function triggerError() {
 function endGame() {
     gameActive = false;
     clearInterval(timerInterval);
+    if (blinkTimeout) clearTimeout(blinkTimeout);
     playGameOverSound();
     
     displayElements.resultScore.textContent = score;
@@ -320,11 +398,19 @@ function endGame() {
     
     // 根據分數給予評語
     let evalText = "";
-    if (score >= 60) evalText = "神級反應！你是外星人吧！ 👽";
-    else if (score >= 45) evalText = "太厲害了！神經傳導速度超越常人！ ⚡";
-    else if (score >= 30) evalText = "表現不錯！反應速度非常快！ 👏";
-    else if (score >= 15) evalText = "有潛力！再暖身一下一定能破表！ 💪";
-    else evalText = "剛睡醒嗎？慢慢來，多玩幾次手感就會來了！ 😴";
+    if (gameMode === 'numbers') {
+        if (score >= 40) evalText = "神級反應！你是外星人吧！ 👽";
+        else if (score >= 30) evalText = "太厲害了！神經傳導速度超越常人！ ⚡";
+        else if (score >= 20) evalText = "表現不錯！反應速度非常快！ 👏";
+        else if (score >= 10) evalText = "有潛力！再暖身一下一定能破表！ 💪";
+        else evalText = "剛睡醒嗎？慢慢來，多玩幾次手感就會來了！ 😴";
+    } else {
+        if (score >= 200) evalText = "反應之神！人類動態視力的極限！ 👑";
+        else if (score >= 140) evalText = "超越極限！閃電般的反應速度！（抵達第四關） ⚡";
+        else if (score >= 80) evalText = "高手境界！眼睛跟得上每一次閃爍！（抵達第三關） 🚀";
+        else if (score >= 30) evalText = "不錯喔！熱身完畢，準備迎接真正的挑戰！（抵達第二關） 👏";
+        else evalText = "剛睡醒嗎？多練幾次手感就會來了！ 😴";
+    }
     
     displayElements.evaluationMsg.textContent = evalText;
     
