@@ -21,23 +21,39 @@
             
             <div class="stats-panel">
                 <div class="stat-box">
-                    <span class="stat-label">🔢 最高分</span>
+                    <span class="stat-label">🔢 數字</span>
                     <span id="best-score-num" class="stat-value">0</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-label">🟩 最高分</span>
+                    <span class="stat-label">🟩 滅燈</span>
                     <span id="best-score-block" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">👁️ 舒爾特</span>
+                    <span id="best-score-schulte" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">🎨 色彩陷阱</span>
+                    <span id="best-score-color" class="stat-value">0</span>
                 </div>
             </div>
             
             <div class="mode-selection">
                 <button class="mode-btn mode-num" data-mode="numbers">
                     <h3>🔢 數字反應</h3>
-                    <p>30秒內從四個選項找對目標</p>
+                    <p>30秒內從四項找出目標</p>
                 </button>
                 <button class="mode-btn mode-block" data-mode="blocks">
                     <h3>🟩 滅燈方塊</h3>
-                    <p>30秒內點擊亮起紅燈的方塊</p>
+                    <p>闖關模式點擊亮起紅方塊</p>
+                </button>
+                <button class="mode-btn mode-schulte" data-mode="schulte">
+                    <h3>👁️ 舒爾特方格</h3>
+                    <p>從 1 開始依序尋找點擊</p>
+                </button>
+                <button class="mode-btn mode-color" data-mode="color">
+                    <h3>🎨 色彩陷阱</h3>
+                    <p>選擇字體顏色，小心大腦當機</p>
                 </button>
             </div>
         </section>
@@ -80,6 +96,31 @@
             <div id="game-blocks-area" class="game-area hidden">
                 <div id="level-notice" class="level-notice hidden">LEVEL 2</div>
                 <div class="blocks-grid" id="blocks-grid">
+                </div>
+            </div>
+
+            <!-- Game Mode 3: Schulte -->
+            <div id="game-schulte-area" class="game-area hidden schulte-area">
+                <div class="schulte-hud">
+                    尋找數字: <span id="schulte-target">1</span>
+                </div>
+                <div class="schulte-grid" id="schulte-grid">
+                </div>
+            </div>
+
+            <!-- Game Mode 4: Color Trap -->
+            <div id="game-color-area" class="game-area hidden">
+                <div class="color-hud">
+                    <span id="color-rule" class="color-rule-text">點擊顏色</span>
+                </div>
+                <div class="color-target-wrapper">
+                    <h1 id="color-target-word">紅</h1>
+                </div>
+                <div class="color-options-grid">
+                    <button class="color-btn" data-color="red"></button>
+                    <button class="color-btn" data-color="blue"></button>
+                    <button class="color-btn" data-color="green"></button>
+                    <button class="color-btn" data-color="yellow"></button>
                 </div>
             </div>
         </section>
